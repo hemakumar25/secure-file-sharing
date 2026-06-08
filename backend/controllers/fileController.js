@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { calculateExpiryTime, formatFileSize, getTimeRemaining } from '../utils/fileUtils.js';
+import { calculateExpiryTime, formatFileSize, getTimeRemaining, generateUniqueCode } from '../utils/fileUtils.js';
 import { fileStore, getDashboardStats } from '../services/cleanupService.js';
 import path from 'path';
 import fs from 'fs';
@@ -20,9 +20,14 @@ export const uploadFile = (req, res) => {
     const expiryHours = parseInt(process.env.FILE_EXPIRY_HOURS) || 24;
     const now = new Date();
     const expiresAt = calculateExpiryTime(now, expiryHours);
+    
+    // Generate unique code
+    const existingCodes = fileStore.getAllCodes();
+    const code = generateUniqueCode(existingCodes);
 
     const fileData = {
       id: fileId,
+      code: code,
       originalName: req.file.originalname,
       filename: req.file.filename,
       mimetype: req.file.mimetype,
@@ -39,6 +44,7 @@ export const uploadFile = (req, res) => {
       success: true,
       message: 'File uploaded successfully',
       fileId: fileId,
+      code: code,
       downloadUrl: `/download/${fileId}`,
       expiresAt: expiresAt,
       fileData: fileData
@@ -63,6 +69,7 @@ export const getAllFiles = (req, res) => {
       .filter(file => file.expiresAt > now)
       .map(file => ({
         id: file.id,
+        code: file.code,
         originalName: file.originalName,
         size: formatFileSize(file.size),
         uploadedAt: file.uploadedAt,
@@ -340,6 +347,7 @@ export const searchFiles = (req, res) => {
       )
       .map(file => ({
         id: file.id,
+        code: file.code,
         originalName: file.originalName,
         size: formatFileSize(file.size),
         uploadedAt: file.uploadedAt,
@@ -360,6 +368,64 @@ export const searchFiles = (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Search failed',
+      error: error.message
+    });
+  }
+};
+
+export const getFileByCode = (req, res) => {
+  try {
+    const { code } = req.params;
+
+    if (!code || code.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Code is required'
+      });
+    }
+
+    const fileData = fileStore.getByCode(code.toUpperCase());
+
+    if (!fileData) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invalid code or file not found'
+      });
+    }
+
+    const now = new Date();
+
+    // Check if file is expired
+    if (fileData.expiresAt < now) {
+      return res.status(410).json({
+        success: false,
+        message: 'File has expired'
+      });
+    }
+
+    const timeRemaining = getTimeRemaining(fileData.expiresAt);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: fileData.id,
+        code: fileData.code,
+        originalName: fileData.originalName,
+        size: formatFileSize(fileData.size),
+        uploadedAt: fileData.uploadedAt,
+        expiresAt: fileData.expiresAt,
+        downloads: fileData.downloads,
+        timeRemaining: timeRemaining.timeString,
+        mimetype: fileData.mimetype,
+        isImage: fileData.mimetype.startsWith('image/'),
+        isPDF: fileData.mimetype === 'application/pdf'
+      }
+    });
+  } catch (error) {
+    console.error('Get file by code error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch file',
       error: error.message
     });
   }

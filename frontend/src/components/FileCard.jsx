@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { FiDownload, FiCopy, FiTrash2, FiEye, FiShare2 } from 'react-icons/fi';
-import { fileAPI, copyToClipboard, getShareableLink } from '../services/api';
+import { FiDownload, FiCopy, FiTrash2, FiEye, FiCheck } from 'react-icons/fi';
+import { fileAPI, copyToClipboard } from '../services/api';
 
 const FileCard = ({ file, onDelete }) => {
-  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const handleCopyLink = async () => {
-    const link = getShareableLink(file.id);
-    const success = await copyToClipboard(link);
-    if (success) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+  const handleCopyCode = async () => {
+    if (file.code) {
+      const success = await copyToClipboard(file.code);
+      if (success) {
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+      }
     }
   };
 
@@ -93,22 +94,30 @@ const FileCard = ({ file, onDelete }) => {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={handleCopyLink}
-          className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition ${
-            copied
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700'
-          }`}
-          title="Copy link"
-        >
-          <FiCopy size={16} />
-          <span className="hidden sm:inline">
-            {copied ? 'Copied!' : 'Copy'}
-          </span>
-        </button>
+      {/* Code Display */}
+      {file.code && (
+        <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-blue-700 mb-1">Share Code</p>
+            <p className="font-mono font-bold text-blue-600 tracking-widest text-lg">
+              {file.code}
+            </p>
+          </div>
+          <button
+            onClick={handleCopyCode}
+            className={`p-2 rounded transition flex-shrink-0 ${
+              copiedCode
+                ? 'bg-green-100 text-green-700'
+                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+            }`}
+            title="Copy code"
+          >
+            {copiedCode ? <FiCheck size={18} /> : <FiCopy size={18} />}
+          </button>
+        </div>
+      )}
 
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={handleDownload}
           className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiAlertCircle, FiRefreshCw, FiCopy, FiCheck } from 'react-icons/fi';
 import UploadBox from '../components/UploadBox';
 import DashboardCards from '../components/DashboardCards';
 import FileCard from '../components/FileCard';
@@ -12,6 +12,7 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchFiles();
@@ -38,8 +39,16 @@ const Home = () => {
     setUploadedFile(fileData.fileData);
     fetchFiles();
 
-    // Show success toast and clear after 5 seconds
-    setTimeout(() => setUploadedFile(null), 5000);
+    // Show success toast and clear after 8 seconds
+    setTimeout(() => setUploadedFile(null), 8000);
+  };
+
+  const copyCodeToClipboard = () => {
+    if (uploadedFile && uploadedFile.code) {
+      navigator.clipboard.writeText(uploadedFile.code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const handleSearch = (results) => {
@@ -64,7 +73,7 @@ const Home = () => {
             Share Files Instantly
           </h1>
           <p className="text-lg md:text-xl opacity-90">
-            No login required. Generate shareable links in seconds.
+            No login required. Upload a file and get a unique code to share.
           </p>
         </div>
       </section>
@@ -75,12 +84,28 @@ const Home = () => {
 
         {uploadedFile && (
           <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800 text-center">
-              ✅ File uploaded successfully! Share the link below.
+            <p className="text-green-800 text-center font-semibold mb-3">
+              ✅ File uploaded successfully!
             </p>
-            <div className="mt-2 p-3 bg-white rounded border border-green-300 font-mono text-sm break-all text-center text-gray-700">
-              {window.location.origin}/download/{uploadedFile.id}
+            <p className="text-green-700 text-center text-sm mb-4">
+              Share this code with others to receive the file:
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <div className="px-4 py-3 bg-white rounded border-2 border-green-300 font-mono text-xl font-bold text-center text-blue-600 tracking-widest min-w-32">
+                {uploadedFile.code}
+              </div>
+              <button
+                onClick={copyCodeToClipboard}
+                className="p-3 bg-green-500 text-white rounded hover:bg-green-600 transition flex items-center gap-2"
+                title="Copy code"
+              >
+                {copied ? <FiCheck size={20} /> : <FiCopy size={20} />}
+                <span className="text-sm">{copied ? 'Copied!' : 'Copy'}</span>
+              </button>
             </div>
+            <p className="text-gray-600 text-xs text-center mt-3">
+              {uploadedFile.originalName} • Expires in ~24 hours
+            </p>
           </div>
         )}
       </section>

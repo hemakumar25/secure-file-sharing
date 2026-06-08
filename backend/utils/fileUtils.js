@@ -98,6 +98,36 @@ export const ensureUploadDir = () => {
   return uploadDir;
 };
 
+export const generateUniqueCode = (existingCodes = []) => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const codeLength = 6;
+  let code = '';
+  let attempts = 0;
+  const maxAttempts = 1000;
+
+  do {
+    code = '';
+    for (let i = 0; i < codeLength; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    attempts++;
+  } while (existingCodes.includes(code) && attempts < maxAttempts);
+
+  if (attempts >= maxAttempts) {
+    throw new Error('Failed to generate unique code');
+  }
+
+  return code;
+};
+
+export const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+};
+
 export const deleteFile = (filePath) => {
   try {
     if (fs.existsSync(filePath)) {
@@ -109,12 +139,4 @@ export const deleteFile = (filePath) => {
     console.error(`Error deleting file: ${error.message}`);
     return false;
   }
-};
-
-export const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 };

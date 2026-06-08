@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiShare2, FiHome } from 'react-icons/fi';
+import { FiShare2, FiHome, FiDownload } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 
 const Navbar = () => {
@@ -17,7 +17,15 @@ const Navbar = () => {
             className="flex items-center gap-2 hover:opacity-80 transition font-medium"
           >
             <FiHome size={20} />
-            <span className="hidden sm:inline">Home</span>
+            <span className="hidden sm:inline">Send</span>
+          </Link>
+
+          <Link
+            to="/receive"
+            className="flex items-center gap-2 hover:opacity-80 transition font-medium"
+          >
+            <FiDownload size={20} />
+            <span className="hidden sm:inline">Receive</span>
           </Link>
 
           <a

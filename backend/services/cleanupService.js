@@ -5,10 +5,15 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let files = {}; // In-memory file storage
+let codes = {}; // Map of code -> fileId
 
 export const fileStore = {
   add: (fileId, fileData) => {
     files[fileId] = fileData;
+    // Add code mapping if code exists (store with uppercase key for case-insensitive lookup)
+    if (fileData.code) {
+      codes[fileData.code.toUpperCase()] = fileId;
+    }
   },
   get: (fileId) => {
     return files[fileId];
@@ -18,14 +23,36 @@ export const fileStore = {
   },
   update: (fileId, updates) => {
     if (files[fileId]) {
+      const oldCode = files[fileId].code;
       files[fileId] = { ...files[fileId], ...updates };
+      // Update code mapping if code changed
+      if (oldCode && updates.code && oldCode !== updates.code) {
+        delete codes[oldCode];
+        codes[updates.code] = fileId;
+      } else if (updates.code && !oldCode) {
+        codes[updates.code] = fileId;
+      }
     }
   },
   delete: (fileId) => {
+    const fileData = files[fileId];
+    if (fileData && fileData.code) {
+      delete codes[fileData.code.toUpperCase()];
+    }
     delete files[fileId];
   },
   exists: (fileId) => {
     return fileId in files;
+  },
+  getByCode: (code) => {
+    const fileId = codes[code];
+    return fileId ? files[fileId] : null;
+  },
+  getIdByCode: (code) => {
+    return codes[code] || null;
+  },
+  getAllCodes: () => {
+    return Object.keys(codes);
   }
 };
 

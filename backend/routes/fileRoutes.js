@@ -11,7 +11,8 @@ import {
   previewFile,
   deleteFile,
   getStats,
-  searchFiles
+  searchFiles,
+  getFileByCode
 } from '../controllers/fileController.js';
 
 const router = express.Router();
@@ -96,5 +97,8 @@ router.get('/stats/dashboard', getStats);
 
 // Search files
 router.get('/search', searchFiles);
+
+// Get file by code (for code-based retrieval)
+router.get('/code/:code', getFileByCode);
 
 export default router;

@@ -93,6 +93,17 @@ export const fileAPI = {
     }
   },
 
+  // Get file by code
+  getFileByCode: async (code) => {
+    try {
+      const response = await api.get(`/api/code/${code.toUpperCase()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Get file by code error:', error);
+      throw error.response?.data || { success: false, message: error.message };
+    }
+  },
+
   // Search files
   searchFiles: async (query) => {
     try {
