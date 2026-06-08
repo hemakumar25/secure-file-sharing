@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://secure-file-sharing-g5mu.onrender.com';
 
 const api = axios.create({
   baseURL: API_URL,
